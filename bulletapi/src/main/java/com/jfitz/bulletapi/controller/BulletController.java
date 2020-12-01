@@ -18,39 +18,39 @@ import com.jfitz.bulletapi.modal.Bullet;
 @RestController
 @RequestMapping("/api")
 public class BulletController {
-	
+
 	@Autowired
 	private BulletService bulletService;
-	
+
 	@GetMapping("/bullet")
 	public List<Bullet> get() {
 		return bulletService.get();
 	}
-	
+
 	@PostMapping("/bullet")
-	public Bullet save(@RequestBody Bullet employee) {
-		bulletService.save(employee);
-		return employee;
+	public Bullet save(@RequestBody Bullet bullet) {
+		bulletService.save(bullet);
+		return bullet;
 	}
-	
+
 	@GetMapping("/bullet/{id}")
 	public Bullet get(@PathVariable int id) {
 		return bulletService.get(id);
 	}
-	
+
 	@DeleteMapping("/bullet/{id}")
 	public String delete(@PathVariable int id) {
-		
+
 		bulletService.delete(id);
-		
-		return "Bullet removed with id "+id;
-		
+
+		return "Bullet removed with id " + id;
+
 	}
-	
+
 	@PutMapping("/bullet")
 	public Bullet update(@RequestBody Bullet bullet) {
 		bulletService.save(bullet);
 		return bullet;
 	}
 
-} 
+}

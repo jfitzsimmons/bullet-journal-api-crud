@@ -19,27 +19,29 @@ public class BulletDAOImp implements BulletDAO {
     @Override
     public List<Bullet> get() {
         Session currSession = entityManager.unwrap(Session.class);
-        Query<Bullet> query = currSession.createQuery("from Bullet", Bullet.class);
+        Query<Bullet> query = currSession.createQuery("from Bullet ORDER BY createDate DESC, dateOrder", Bullet.class);
         List<Bullet> list = query.getResultList();
         return list;
     }
 
     @Override
     public Bullet get(int id) {
-	     Session currSession = entityManager.unwrap(Session.class);
-	     Bullet bllt = currSession.get(Bullet.class, id);
-	     return bllt;
+        Session currSession = entityManager.unwrap(Session.class);
+        Bullet bllt = currSession.get(Bullet.class, id);
+        return bllt;
     }
-    
+
     @Override
     public void save(Bullet employee) {
-     
-     Session currSession = entityManager.unwrap(Session.class);
-     currSession.saveOrUpdate(employee);}
-    
+
+        Session currSession = entityManager.unwrap(Session.class);
+        currSession.saveOrUpdate(employee);
+    }
+
     @Override
     public void delete(int id) {
-     Session currSession = entityManager.unwrap(Session.class);
-     Bullet bllt = currSession.get(Bullet.class, id);
-     currSession.delete(bllt);}
+        Session currSession = entityManager.unwrap(Session.class);
+        Bullet bllt = currSession.get(Bullet.class, id);
+        currSession.delete(bllt);
+    }
 }
