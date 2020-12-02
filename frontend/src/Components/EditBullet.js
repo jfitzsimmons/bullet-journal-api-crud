@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
+
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import GroupIcon from '@material-ui/icons/Group';
 import Typography from '@material-ui/core/Typography';
@@ -11,10 +12,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import StarIcon from '@material-ui/icons/Star';
@@ -34,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.secondary.main,
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
+    width: '100%',
     marginTop: theme.spacing(3),
   },
   submit: {
@@ -47,46 +46,70 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function AddBullet() {
+export default function EditBullet(props) {
   const classes = useStyles();
-  // const [firstLoad, setLoad] = React.useState(true);
+  const [date, setDate] = useState('2020-11-27');
+  const [tab, setTab] = useState(0);
+  const [dateOrder, setDateOrder] = useState(0);
+  const [taskType, setTaskType] = useState('b');
+  const [content, setContent] = useState('');
 
-  const [tab, setTab] = React.useState(0);
-  const [dateOrder, setDateOrder] = React.useState(0);
-  const [taskType, setTaskType] = React.useState('b');
-  const [content, setContent] = React.useState('');
+  const [state, setState] = useState({
+    important: false,
+    inspirational: false,
+  });
+
+  const { taskId } = props;
 
   const handleTabChange = (event) => setTab(event.target.value);
   const handleDateOrderChange = (event) => setDateOrder(event.target.value);
   const handleTaskTypeChange = (event) => setTaskType(event.target.value);
   const handleContentChange = (event) => setContent(event.target.value);
 
-  const [message, setMessage] = React.useState('Nothing saved in the session');
-
-  const [state, setState] = React.useState({
-    important: false,
-    inspirational: false,
-  });
+  const [message, setMessage] = useState('Nothing saved in the session');
 
   const handleChange = (event) => {
     setState({ ...state, [event.target.name]: event.target.checked });
   };
 
-  async function postBullet(toInput) {
-    console.log(`in async`);
+  async function getBulletById(bId) {
+    console.log(`by id`);
+    console.log(bId);
+    const response = await fetch(`/api/bullet/${bId}`);
+    const body = await response.json();
+    console.log(body);
+    setContent(body.content);
+    setTab(body.tab);
+    setDateOrder(body.dateOrder);
+    setTaskType(body.taskType);
+    setState({
+      important: body.important,
+      inspirational: body.inspirational,
+    });
+    setDate(body.createDate);
+  }
+
+  useEffect(() => {
+    console.log(`mount/update id: ${taskId}`);
+    if (taskId) {
+      getBulletById(taskId);
+    }
+  }, []);
+
+  async function putBullet(toInput) {
+    console.log(`put`);
     console.log(JSON.stringify(toInput));
     const response = await fetch('/api/bullet', {
-      method: 'POST', // *GET, POST, PUT, DELETE, etc.
-      mode: 'cors', // no-cors, *cors, same-origin
-      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: 'same-origin', // include, *same-origin, omit
+      method: 'PUT',
+      mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        // 'Content-Type': 'application/x-www-form-urlencoded',
       },
-      redirect: 'follow', // manual, *follow, error
-      referrerPolicy: 'no-referrer', // no-referrer, *client
-      body: JSON.stringify(toInput), // body data type must match "Content-Type" header
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer',
+      body: JSON.stringify(toInput),
     });
     const body = await response.json();
     console.log(body.id);
@@ -94,25 +117,18 @@ export default function AddBullet() {
   }
 
   const handleSubmit = () => {
-    let today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
-    const yyyy = today.getFullYear();
-
-    today = `${yyyy}-${mm}-${dd}`;
-
-    console.log(`today: ${today}`);
     const toInput = {
+      id: taskId,
       tab,
       dateOrder,
       taskType,
       content,
       important: state.important,
       inspirational: state.inspirational,
-      createDate: today,
+      createDate: date,
     };
 
-    postBullet(toInput);
+    putBullet(toInput);
   };
 
   return (
@@ -170,7 +186,7 @@ export default function AddBullet() {
                   <MenuItem value="c">Task Complete</MenuItem>
                   <MenuItem value="m">Task Migrated</MenuItem>
                   <MenuItem value="s">Task Scheduled</MenuItem>
-                  <MenuItem value="r">Task Irrelevant</MenuItem>
+                  <MenuItem value="i">Task Irrelevant</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -229,12 +245,6 @@ export default function AddBullet() {
           >
             Save
           </Button>
-
-          <Grid container justify="center">
-            <Grid item>
-              <Link to="/view">View all Bullets</Link>
-            </Grid>
-          </Grid>
         </form>
         <Typography style={{ margin: 7 }} variant="body1">
           Status: {message}
@@ -243,3 +253,7 @@ export default function AddBullet() {
     </Container>
   );
 }
+
+EditBullet.propTypes = {
+  taskId: PropTypes.number.isRequired,
+};

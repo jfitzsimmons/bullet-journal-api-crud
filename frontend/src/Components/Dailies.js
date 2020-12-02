@@ -1,5 +1,7 @@
 import React from 'react';
+import '../App.css';
 import { makeStyles } from '@material-ui/core/styles';
+// import clsx from 'clsx';
 import Paper from '@material-ui/core/Paper';
 import Avatar from '@material-ui/core/Avatar';
 import GroupIcon from '@material-ui/icons/Group';
@@ -10,6 +12,21 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
+import NewReleasesIcon from '@material-ui/icons/NewReleases';
+import StarIcon from '@material-ui/icons/Star';
+import EventIcon from '@material-ui/icons/Event';
+import AssignmentIcon from '@material-ui/icons/Assignment';
+import NoteIcon from '@material-ui/icons/Note';
+import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn';
+import ScheduleIcon from '@material-ui/icons/Schedule';
+import RemoveFromQueueIcon from '@material-ui/icons/RemoveFromQueue';
+import EditIcon from '@material-ui/icons/Edit';
+import DeleteIcon from '@material-ui/icons/Delete';
+import IconButton from '@material-ui/core/IconButton';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Button from '@material-ui/core/Button';
+import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
+import EditBullet from './EditBullet';
 
 const useStyles = makeStyles((theme) => ({
   table: {
@@ -38,12 +55,23 @@ const useStyles = makeStyles((theme) => ({
       color: 'rgba(0,0,0,1)',
     },
   },
+  strike: {
+    textDecoration: 'line-through',
+  },
 }));
 
 export default function SimpleTable() {
   const classes = useStyles();
 
+  const [state, setState] = React.useState({
+    top: false,
+    left: false,
+    bottom: false,
+    right: false,
+  });
+
   const [data, upDateData] = React.useState([]);
+  const [taskId, setTaskId] = React.useState(0);
   const [firstLoad, setLoad] = React.useState(true);
   let isLoading = true;
 
@@ -67,6 +95,30 @@ export default function SimpleTable() {
     setLoad(false);
   }
 
+  function TaskType(type) {
+    switch (type.value) {
+      case 'n':
+        return <NoteIcon />;
+      case 'e':
+        return <EventIcon />;
+      case 'c':
+        return <AssignmentTurnedInIcon />;
+      case 'm':
+        return <RemoveFromQueueIcon />;
+      case 's':
+        return <ScheduleIcon />;
+      default:
+        return <AssignmentIcon />;
+    }
+  }
+
+  const toggleDrawer = (anchor, open, id) => (event) => {
+    if (open) {
+      setTaskId(id);
+    }
+    setState({ ...state, [anchor]: open });
+  };
+
   if (data) isLoading = false;
 
   return (
@@ -87,8 +139,25 @@ export default function SimpleTable() {
               <ul className={classes.ul}>
                 <ListSubheader>{`I'm sticky ${day[0].createDate}`}</ListSubheader>
                 {day.map((task) => (
-                  <ListItem key={`task-${task.id}`}>
+                  <ListItem
+                    key={`task-${task.id}`}
+                    className={`tabbed${task.tab} ${
+                      task.taskType === 'i' ? classes.strike : ''
+                    }`}
+                  >
+                    <TaskType value={task.taskType} />
+                    {task.important && <NewReleasesIcon />}
+                    {task.inspirational && <StarIcon />}
                     <ListItemText primary={`Item ${task.content}`} />
+                    <ListItemSecondaryAction>
+                      <IconButton
+                        edge="end"
+                        aria-label="edit"
+                        onClick={toggleDrawer('left', true, task.id)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
                   </ListItem>
                 ))}
               </ul>
@@ -102,6 +171,16 @@ export default function SimpleTable() {
           &#x2190; Head back to save data
         </Typography>{' '}
       </Link>
+      <div>
+        <SwipeableDrawer
+          anchor="left"
+          open={state.left}
+          onClose={toggleDrawer('left', false, 1)}
+          onOpen={toggleDrawer('left', true, 1)}
+        >
+          <EditBullet taskId={taskId} />
+        </SwipeableDrawer>
+      </div>
     </div>
   );
 }
